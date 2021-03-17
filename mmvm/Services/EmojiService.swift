@@ -14,50 +14,23 @@ final class EmojiService: Service {
     let baseURLString = "https://emoji-api.com"
     var cancellables: [AnyCancellable] = []
 
-    // MARK: - Init
-
-    init() {
-        bind()
-    }
-
     // MARK: - Input
 
-    let loadAllEmojiSubject = PassthroughSubject<Void, Never>()
     let errorSubject = PassthroughSubject<ServiceError, Never>()
-
-    // The endpoint for this input is just /emoji, which is not helpful. So I've named the input for clarity.
-    enum Input: Equatable {
-        case loadAllEmoji
-    }
-
-    func apply(input: Input) {
-        switch input {
-            case .loadAllEmoji: loadAllEmojiSubject.send(())
-        }
-    }
 
     // MARK: - Output
 
-    @Published var emoji: [Emoji] = []
     @Published var error: ServiceError?
 
-    // MARK: - Binding View Model
+    // MARK: - Requests
 
-    private func bind() {
-        loadAllEmojiSubject
-            .flatMap { [unowned self] in
-                return self.response(from: EmojiRequest())
-                    .catch { [weak self] error -> Empty<EmojiRequest.Response, Never> in
-                        self?.errorSubject.send(error)
-                        return .init()
-                    }
+    func loadAllEmoji() -> AnyPublisher<EmojiRequest.Response, Never> {
+        return response(from: EmojiRequest())
+            .catch { [weak self] error -> Empty<EmojiRequest.Response, Never> in
+                self?.errorSubject.send(error)
+                return .init()
             }
-            .assign(to: \.emoji, on: self)
-            .store(in: &cancellables)
-
-        errorSubject
-            .compactMap { $0 }
-            .assign(to: \.error, on: self)
-            .store(in: &cancellables)
+            .share()
+            .eraseToAnyPublisher()
     }
 }

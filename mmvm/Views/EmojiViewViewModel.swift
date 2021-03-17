@@ -46,17 +46,14 @@ final class EmojiViewViewModel: ViewModel {
 
     private func bind() {
         onAppearSubject
-            .sink { [emojiService] in
-                emojiService.apply(input: .loadAllEmoji)
+            .flatMap { [emojiService] _ in
+                emojiService.loadAllEmoji()
             }
+            .assign(to: \.emoji, on: self)
             .store(in: &cancellables)
 
         didTapEmojiSubject
             .assign(to: \.selectedIndex, on: self)
-            .store(in: &cancellables)
-
-        emojiService.$emoji
-            .assign(to: \.emoji, on: self)
             .store(in: &cancellables)
     }
 }

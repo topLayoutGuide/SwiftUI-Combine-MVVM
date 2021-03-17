@@ -9,23 +9,15 @@ import SwiftUI
 import Combine
 
 protocol Service {
-    // All my API-calling services will have inputs
-    // The inputs will represent callable endpoints
-    associatedtype Input: Equatable
-
     // Every API has a base URL, so let's make sure our concrete implementation of a "service" also has one.
     var baseURLString: String { get }
     var cancellables: [AnyCancellable] { get }
-
-    // We need a function to apply our inputs
-    func apply(input: Input)
 
     // We also need a function to request our data and return the desired response.
     func response<R>(from request: R) -> AnyPublisher<R.Response, ServiceError> where R: Request
 }
 
 extension Service {
-
     /// Get the API Response
     /// - Parameter request: The request to use
     /// - Returns: The response defined by the request
